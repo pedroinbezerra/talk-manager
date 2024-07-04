@@ -1,0 +1,29 @@
+version: '3.3'
+services:
+  talk-manager:
+      container_name: talk-manager
+      build:
+        context: .
+        args:
+          project: talk-manager
+        dockerfile: Dockerfile
+      restart: unless-stopped
+      ports:
+        - "9091:9091"
+
+      command: npm run start
+      networks:
+        - default
+      depends_on: 
+        - redis
+
+  redis:
+    container_name: redis
+    command: redis-server
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-Redis
+    expose:
+      - 6379
+    ports:
+      - 6379:6379
