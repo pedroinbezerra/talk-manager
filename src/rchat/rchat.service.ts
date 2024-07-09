@@ -1,24 +1,16 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { RchatResponseDto } from './dto/rchatResponse.dto';
-import { WhatsappSendMessageDto } from './dto/whatsappResponse.dto';
-import { RchatPayloadDto } from './dto/rchatPayload.dto';
-import { BotpressService } from 'src/botpress/botpress.service';
-import { BotResponseDto, ResponseDto } from 'src/botpress/dto/response.dto';
 
-var rchatBaseUrl: string;
-var whatsappBaseUrl: string;
+var rchatBaseUrl;
 
 @Injectable()
 export class RchatService {
   constructor(
     private configService: ConfigService,
-    private botpressService: BotpressService,
-    @Inject(CACHE_MANAGER) private cacheManager: any
+    @Inject(CACHE_MANAGER) private cacheManager
   ) {
     rchatBaseUrl = configService.get('ROCKETCHAT_BASE_URL');
-    whatsappBaseUrl = configService.get('WHATSAPP_BASE_URL');
   }
 
   async login() {
@@ -45,10 +37,10 @@ export class RchatService {
 
     const payload = {
       visitor: {
-        name: data.name || data.sessionId,
+        name: data.name || '',
         email: data.email || '',
         token: data.sessionId,
-        phone: data.phone || data.sessionId
+        phone: data.phone || ''
       }
     }
 
@@ -57,7 +49,7 @@ export class RchatService {
 
   async createRoom(guestToken: string) {
     console.log('[createRoom] - Criando sala 🚀');
-    return await axios.get(`${rchatBaseUrl}/api/v1/livechat/room?token=${guestToken}`).catch(err => err.response.data)
+    return await axios.get(`${rchatBaseUrl}/api/v1/livechat/room?token=${guestToken}`);
   }
 
   async sendMessage(token: string, roomId: string, message: string) {
@@ -98,25 +90,9 @@ export class RchatService {
     return await axios.get(endpoint);
   }
 
-  async sendResponse(data: RchatPayloadDto) {
-    var payload: WhatsappSendMessageDto = {
-      messages: [data.message],
-      to: data.guestToken
-    }
-
-    if(data.type === 'LivechatSession' && !!data.closedAt) {
-      const botResponse: BotResponseDto = await this.botpressService.sendMessage("sair");
-      await this.cacheManager.del(`guest_${data.guestToken}`);
-
-      payload.messages = [];
-
-      botResponse.responses.map((res: ResponseDto) => {
-        payload.messages.push(res.text);
-      })
-    }
-
+  async sendResponse(data) {
     console.log('[sendResponse] - Enviando resposta recebida do Rocket.Chat 🚀');
-    await axios.post(`${whatsappBaseUrl}/message/send`, payload).then(res => {
+    await axios.post('url', data).then(res => {
       console.log('[sendResponse] - Resposta enviada com sucesso');
     }).catch(err => {
       console.log('[sendResponse] - Erro ao enviar resposta:');

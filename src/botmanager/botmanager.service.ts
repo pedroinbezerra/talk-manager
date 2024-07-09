@@ -1,20 +1,17 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
-import { RchatService } from '../rchat/rchat.service';
-import { BotpressService } from '../botpress/botpress.service';
+import { RchatService } from 'src/rchat/rchat.service';
+import { BotpressService } from 'src/botpress/botpress.service';
 import { ConfigService } from '@nestjs/config';
-import { MessageDto } from './dto/message.dto';
-import { RoomTransferDto } from './dto/roomTransfer.dto';
-import { SendArrayMessageDto } from './dto/sendMessage.dto';
 
-const defaultDepartment = '653a66c65db2abbe9516b41b';
+const defaultDepartment = "65fc70acfd5f1fbddbbd9fc2";
 var debug: boolean;
 @Injectable()
 export class BotmanagerService {
   constructor(
+    private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: any,
     @Inject(RchatService) private rchatService: RchatService,
-    @Inject(BotpressService) private botpressService: BotpressService,
-    private configService: ConfigService,
+    @Inject(BotpressService) private botpressService: BotpressService
   ) {
     debug = configService.get('DEBUG');
   }
@@ -24,7 +21,7 @@ export class BotmanagerService {
     console.log('[getResponses] - Ajustando respostas do Botpress 🤖');
     var responses = [];
 
-    await data.responses.map(async (response) => {
+    await data.responses.map(async response => {
       responses.push({ content: response.text, type: 'text' });
     });
 
@@ -34,71 +31,33 @@ export class BotmanagerService {
   // TODO: Criar um módulo Util e mover pra lá
   async updateContext(token: string, newContext) {
     console.log('[updateContext] - Atualizando contexto 💾');
-    return await this.cacheManager
-      .get(`guest_${token}`)
-      .then((res) => {
-        res = JSON.parse(res);
+    return await this.cacheManager.get(`guest_${token}`).then(res => {
+      res = JSON.parse(res);
 
-        delete newContext?.__stacktrace;
+      delete newContext?.__stacktrace;
 
-        if (debug) {
-          console.log('Contexto atual:');
-          console.log(res);
+      if (debug) {
+        console.log("Contexto atual:");
+        console.log(res);
 
-          console.log('Contexo recebido:');
-          console.log(newContext);
-
-          console.log('Contexto atualizado:');
-          console.log(context);
-        }
+        console.log("Contexo recebido:");
+        console.log(newContext);
 
         var context = { ...res, ...newContext, token };
 
-        if (context) {
-          this.cacheManager.set(`guest_${token}`, JSON.stringify(context));
-        }
+        console.log("Contexto atualizado:");
+        console.log(context);
+      }
 
-        return context;
-      })
-      .catch((err) => {
-        console.log('[updateContext] - Erro:');
-        console.log(err);
-      });
-  }
+      if(context) {
+        this.cacheManager.set(`guest_${token}`, JSON.stringify(context));
+      }
 
-  // TODO: Criar um módulo Util e mover pra lá
-  async replaceContext(token: string, newContext) {
-    console.log('[updateContext] - Atualizando contexto 💾');
-    return await this.cacheManager
-      .get(`guest_${token}`)
-      .then((res) => {
-        res = JSON.parse(res);
-
-        delete newContext?.__stacktrace;
-
-        if (debug) {
-          console.log('Contexto atual:');
-          console.log(res);
-
-          console.log('Contexo recebido:');
-          console.log(newContext);
-
-          console.log('Contexto atualizado:');
-          console.log(context);
-        }
-
-        var context = { ...newContext, token };
-
-        if (context) {
-          this.cacheManager.set(`guest_${token}`, JSON.stringify(context));
-        }
-
-        return context;
-      })
-      .catch((err) => {
-        console.log('[updateContext] - Erro:');
-        console.log(err);
-      });
+      return context;
+    }).catch(err => {
+      console.log('[updateContext] - Erro:');
+      console.log(err);
+    })
   }
 
   // TODO: Criar um módulo Util e mover pra lá
@@ -115,85 +74,59 @@ export class BotmanagerService {
   }
 
   async createOrGetGuest(data: any) {
-    console.log(
-      '[createOrGetGuest] - Obtendo/Ajustando informações do guest ⚙️',
-    );
+    console.log('[createOrGetGuest] - Obtendo/Ajustando informações do guest ⚙️');
     var context = await this.getContext(data.sessionId);
 
     if (debug) {
-      console.log('[createOrGetGuest] - contexto:');
-      console.log(context);
+      console.log('[createOrGetGuest] - contexto:')
+      console.log(context)
     }
 
     if (!context.visitorId) {
-      return await this.rchatService
-        .registerGuest(data)
-        .then(async (res) => {
-          await this.updateContext(data.sessionId, {
-            visitorId: res.data.visitor._id,
-          });
-          return { ...res.data, firstMessage: true };
-        })
-        .catch((err) => {
-          console.log('[createOrGetGuest] - Error:');
-          console.log(err);
-        });
+      return await this.rchatService.registerGuest(data).then(async res => {
+        await this.updateContext(data.sessionId, { visitorId: res.data.visitor._id });
+        return res.data;
+      }).catch(err => {
+        console.log('[createOrGetGuest] - Error:');
+        console.log(err);
+      });
     }
 
-    return context;
+    return context
   }
 
   async createRoom(visitorToken: string) {
     console.log('[createRoom] - Criando nova sala 🗣️');
-    const newRoom = await this.rchatService.createRoom(visitorToken);
-
-    if (debug) {
-      console.log('Rchat room create status:');
-      console.log(newRoom);
-    }
-
-    if (newRoom.errorType) {
-      return newRoom;
-    }
-    await this.updateContext(visitorToken, { roomId: newRoom.data.room._id });
-
-    return newRoom.data.room;
+    return await this.rchatService.createRoom(visitorToken).then(async res => {
+      var teste = await this.updateContext(visitorToken, { roomId: res.data.room._id });
+      return res.data.room;
+    }).catch(err => {
+      console.log('[createRoom] - Error:');
+      console.log(err);
+    })
   }
 
-  async roomTransfer(data: RoomTransferDto) {
-    const { roomId, departmentId, visitorToken } = data;
-
+  async roomTransfer(roomId: string, departmentId: string, visitorToken: string) {
     console.log('[roomTransfer] - Transferindo sala ⬅️➡️');
-    return await this.rchatService
-      .roomTransfer(roomId, departmentId)
-      .then(async (res) => {
-        await this.updateContext(visitorToken, {
-          departmentId: departmentId,
-          transfered: true,
-        });
-        return res.status;
-      })
-      .catch(async (err) => {
-        const data = err.response.data;
-        if (data.error === 'error-forwarding-chat-same-department') {
-          await this.updateContext(visitorToken, {
-            departmentId: departmentId,
-            transfered: true,
-          });
-          console.log('[roomTransfer] - já transferido');
-          return;
-        }
+    return await this.rchatService.roomTransfer(roomId, departmentId).then(async res => {
+      await this.updateContext(visitorToken, { departmentId: departmentId, transfered: true })
+      return res.status;
+    }).catch(async err => {
+      const data = err.response.data;
+      if (data.error === 'error-forwarding-chat-same-department') {
+        await this.updateContext(visitorToken, { departmentId: departmentId, transfered: true })
+        console.log('[roomTransfer] - já transferido');
+        return;
+      }
 
-        console.log('[roomTransfer] - Error:');
-        console.log(err.response.data);
-      });
+      console.log('[roomTransfer] - Error:');
+      console.log(err.response.data);
+    })
   }
 
-  async closeChat(token: string) {
-    console.log(
-      '[closeChat] - Encerrando sessão no Botpress e limpando cache 🗑️',
-    );
-    return await this.botpressService.sendMessage('sair').then(async (res) => {
+  async closeChat(token) {
+    console.log('[closeChat] - Encerrando sessão no Botpress e limpando cache 🗑️');
+    return await this.botpressService.sendMessage("sair").then(async res => {
       await this.clearContext(token);
       return res;
     });
@@ -201,39 +134,17 @@ export class BotmanagerService {
 
   async sendToBot(data) {
     console.log('[sendToBot] - Encaminhando mensagem para Botpress 🤖');
-    return await this.botpressService
-      .sendMessage(data.message)
-      .then(async (res) => {
-        await this.updateContext(data.sessionId, res.state);
-        return res;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    return await this.botpressService.sendMessage(data.message).then(async res => {
+      await this.updateContext(data.sessionId, res.state);
+      return res;
+    });
   }
 
-  async sendArrayMessage(data: SendArrayMessageDto) {
-    if (data.messages.length === data.index) {
-      return;
-    }
-
-    console.log(data);
-
-    await this.rchatService
-      .sendMessage(data.token, data.roomId, `- ${data.messages[data.index]}`)
-      .then(() => {
-        setTimeout(() => {
-          data.index = data.index = data.index + 1;
-          this.sendArrayMessage(data);
-        }, 1000);
-      });
-  }
-
-  async message(data: MessageDto) {
-    var guestData, botResponse;
+  async message(data: any) {
+    var room, guestData, botResponse;
     var context = await this.getContext(data.sessionId);
 
-    if (true) {
+    if (debug) {
       console.log('[message] - contexto:');
       console.log(context);
     }
@@ -247,20 +158,10 @@ export class BotmanagerService {
 
       context = await this.updateContext(data.sessionId, botResponse.state);
 
-      var clientMessages = [];
-
-      // Atualizando contexto da mensagens enviadas pelo cliente
-      if (context.clientMessages) {
-        clientMessages = context.clientMessages;
-      }
-      clientMessages.push(data.message);
-      await this.updateContext(data.sessionId, { clientMessages });
-      context.clientMessages = clientMessages;
-
       botResponse = await this.getResponses(botResponse);
 
       if (!context?.session.transferToHuman) {
-        return botResponse;
+        return botResponse
       } else {
         transferToHuman = true;
       }
@@ -269,55 +170,21 @@ export class BotmanagerService {
     // Send message to Rocket.Chat
     guestData = await this.createOrGetGuest(data);
 
-    if (transferToHuman && !transfered) {
-      guestData.token = guestData.token || guestData?.visitor.token;
-      const room = await this.createRoom(guestData.token);
-
-      if (room?.errorType === 'no-agent-online') {
-        return [
-          {
-            content:
-              'Nenhum agente disponível no momento. Tente novamente mais tarde.',
-            type: 'text',
-          },
-        ];
-      }
-
-      const payload = {
-        roomId: room._id,
-        departmentId: defaultDepartment,
-        visitorToken: guestData.token,
-      };
-
-      guestData.roomId = room._id;
-
-      await this.roomTransfer(payload);
+    if (debug) {
+      console.log('guestData')
+      console.log(guestData)
     }
 
-    if (guestData?.firstMessage) {
-      console.log('###############    PRIMEIRA MENSAGEM    #################');
-      console.log(context);
-      this.rchatService.sendMessage(
-        guestData.token,
-        guestData.roomId,
-        `MENSAGENS DO CLIENTE:\n`,
-      );
+    if (transferToHuman && !transfered) {
+      guestData.token = guestData.token || guestData?.visitor.token;
+      room = await this.createRoom(guestData.token);
+      guestData.roomId = room._id;
 
-      await this.sendArrayMessage({
-        token: guestData.token,
-        roomId: guestData.roomId,
-        messages: context.clientMessages,
-        index: 0,
-      });
-      delete context.clientMessages;
+      await this.roomTransfer(room._id, defaultDepartment, guestData.token);
+    }
 
-      await this.replaceContext(data.sessionId, context);
-    } else if (transferToHuman) {
-      await this.rchatService.sendMessage(
-        guestData.token,
-        guestData.roomId,
-        data.message,
-      );
+    if (transferToHuman) {
+      await this.rchatService.sendMessage(guestData.token, guestData.roomId, data.message);
     }
 
     if (botResponse) {
