@@ -2,14 +2,6 @@
 
 Esse projeto contém o código fonte da comunicação entre o [Botpress](https://botpress.com/) e [Rocketchat](https://pt-br.rocket.chat/)
 
-<!-- O link para acessar o projeto em produção e homologação, são respectivamente:
-
-POST:
-<br>
-http://url-do-projeto.com
-<br>
-http://url-do-projeto.com -->
-
 ## Pré-requisitos
  
 Para começar a trabalhar no projeto você vai precisar dos programas abaixo instalados em sua máquina:
@@ -17,22 +9,6 @@ Para começar a trabalhar no projeto você vai precisar dos programas abaixo ins
  - [GIT](https://git-scm.com/downloads)
  - [Node.js](https://nodejs.org/en/download/)
  - [Docker](https://www.docker.com/)
-
-<!-- Para configurar o projeto em sua máquina, siga o passo a passo abaixo:
-
-## Clonando o projeto
-
-- Clone o projeto usando o git, via SSH ou HTTPS, clicando no botão **Clone**, na página do GIT do projeto ou usando os comandos abaixo:
-
-Clone via SSH:
-```
-git clone ssh://git@gitlab.unimedfortaleza.com.br:2222/novas-tecnologias/rchat-webhook.git
-```
-
-Clone via HTTPS:
-```
-git clone http://gitlab.unimedfortaleza.com.br/novas-tecnologias/rchat-webhook.git -->
-```
 
 ## Instalando as dependências
 
@@ -45,8 +21,7 @@ npm install
 
 ## Ajustando o ambiente
 
-Para o correto funcionamento do ambiente, é necessário que o arquivo .env esteja devidamente configurado. Para isso, faça uma cópia do arquivo ***.env.example*** e renomeie para ***.env***.
-Com isso, o ambiente já estará configurado com os apontamentos para as integrações com os sistemas de homologação.
+Para o correto funcionamento do ambiente, é necessário que o arquivo .env esteja devidamente configurado. Para isso, faça uma cópia do arquivo ***.env.example*** e renomeie para ***.env*** fazendo os apontamentos conforme necessário.
 
 ## Executando o projeto
 
@@ -67,9 +42,9 @@ Em seguida execute o projeto utilizando o comando abaixo:
 npm run start:dev
 ```
 
-<!-- **Observações importantes:** 
+**Observações importantes:** 
 
-Caso execute o projeto utilizando NPM, ajuste o  arquivo ***.env*** para apontar corretamente para o redis, inserindo o host e porta correta. Se o projeto estiver sendo executado localmente, com as informações padrão do arquivo .env.example, o ***REDIS_HOST*** deverá apontar para localhost e o ***REDIS_PORT*** para 6382. -->
+Caso execute o projeto utilizando NPM, ajuste o  arquivo ***.env*** para apontar corretamente para o redis, inserindo o host e porta correta. Se o projeto estiver sendo executado localmente, com as informações padrão do arquivo .env.example, o ***REDIS_HOST*** deverá apontar para localhost e o ***REDIS_PORT*** para 6382.
 
 
 ## Visualizando o projeto
@@ -78,11 +53,11 @@ Por padrão, o projeto pode ser acessado através da URL abaixo, caso esteja sen
 
 POST - [http://localhost:3000/rchat](http://localhost:3000/rchat)
 
-<!-- Caso o projeto esteja sendo executado usando Docker, por padrão poderá ser acessado através do endereço:
+Caso o projeto esteja sendo executado usando Docker, por padrão poderá ser acessado através do endereço:
 
-POST - [http://localhost:9091/rchat](http://localhost:9091/rchat) -->
+POST - [http://localhost:9091/rchat](http://localhost:9091/rchat)
 
-## Disponibilizando o projeto na web
+## Disponibilizando o projeto na web para testes
 
 Para disponibilizar o projeto na web e testar usando o Rocketchat, por exemplo, utilize o [Ngrok](https://ngrok.com/download).
 Abra o ngrok e digite o comando abaixo.

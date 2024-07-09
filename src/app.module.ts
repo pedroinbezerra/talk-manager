@@ -6,8 +6,6 @@ import { BotmanagerController } from './botmanager/botmanager.controller';
 import { BotmanagerService } from './botmanager/botmanager.service';
 import { BotmanagerModule } from './botmanager/botmanager.module';
 import { BotpressModule } from './botpress/botpress.module';
-import { RchatService } from './rchat/rchat.service';
-import { BotpressService } from './botpress/botpress.service';
 
 
 @Module({
@@ -17,6 +15,7 @@ import { BotpressService } from './botpress/botpress.service';
       isGlobal: true,
       expandVariables: true,
     }),
+    RchatModule,
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
@@ -28,6 +27,6 @@ import { BotpressService } from './botpress/botpress.service';
     BotpressModule,
   ],
   controllers: [BotmanagerController],
-  providers: [BotmanagerService, RchatService],
+  providers: [BotmanagerService],
 })
 export class AppModule { }
